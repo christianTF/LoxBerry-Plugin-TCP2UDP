@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Will be executed as user "root".
+
+exit 0

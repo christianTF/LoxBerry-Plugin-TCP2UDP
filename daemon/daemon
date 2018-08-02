@@ -1,0 +1,177 @@
+#!/bin/bash
+
+exit 0
+
+# Will be executed as user "root".
+
+# Name this file "daemon" in your plugin-archive. It will be renamed to NAME
+# during installation
+
+loxberryhome=REPLACEINSTALLFOLDER
+pluginname=REPLACEFOLDERNAME
+
+# Directory/Pluginname fallback for test environment
+if [ ! -d $loxberryhome ]; then
+	loxberryhome=/opt/loxberry
+fi
+if [ ! -d $pluginname ]; then
+	pluginname=squeezelite
+fi
+
+
+if [ -x /usr/bin/logger ]; then
+    /usr/bin/logger "loxberry-plugin-$pluginname - DAEMON Script from Squeezelite Plugin"
+fi
+
+cat /etc/*-release | grep raspbian
+if [ $? -eq 0 ]; then
+	# Is Raspbian OS
+	dpkg-query -l wiringpi
+	if [ $? -ne 0 ]; then
+		# Install wiringpi
+		apt-get -y install wiringpi
+	fi
+fi
+
+
+# Correct permissions of logs of older versions
+chmod a+w $loxberryhome/log/plugins/$pluginname/*
+
+# Creating own user for Squeezelite
+id -u "squeezelox" > /dev/null
+if [ $? -ne 0 ] ; then
+	if [ -x /usr/bin/logger ]; then 
+			/usr/bin/logger "loxberry-plugin-$pluginname - Creating user squeezelox"
+	fi
+	useradd squeezelox -g loxberry -G audio,gpio > /dev/null
+fi
+
+groups squeezelox | grep -q audio
+if [ $? -ne 0 ] ; then
+	adduser squeezelox audio > /dev/null
+fi
+# Needed by WiringPi
+groups squeezelox | grep -q gpio
+if [ $? -ne 0 ] ; then
+	adduser squeezelox gpio > /dev/null
+fi
+# New in WiringPi -> Redirect GPIOs to /dev/gpiomem to avoid root permissions requirement
+export WIRINGPI_GPIOMEM=1
+
+# Add Squeezelite to sudoers (need root permission)
+# Sudoers V2
+sudoversion=3
+
+if [ ! -e $loxberryhome/config/plugins/$pluginname/sudoers.v$sudoversion ]
+	then
+		if [ -x /usr/bin/logger ]; then 
+			/usr/bin/logger "loxberry-plugin-$pluginname - Adding sudoers permissions"
+		fi
+		echo %loxberry ALL = NOPASSWD: /usr/bin/squeezelite > /etc/sudoers.d/$pluginname
+		echo %loxberry ALL = NOPASSWD: $loxberryhome/data/plugins/$pluginname/squeezelite > /etc/sudoers.d/$pluginname
+		echo %loxberry ALL = NOPASSWD: /usr/bin/amixer >> /etc/sudoers.d/$pluginname
+		echo %loxberry ALL = NOPASSWD: $loxberryhome/webfrontend/cgi/plugins/$pluginname/kill_squeezelite.sh >> /etc/sudoers.d/$pluginname
+		echo %loxberry ALL = NOPASSWD: $loxberryhome/webfrontend/cgi/plugins/$pluginname/start_instances.cgi >> /etc/sudoers.d/$pluginname
+		chmod 0440 /etc/sudoers.d/$pluginname
+		rm $loxberryhome/config/plugins/$pluginname/sudoers.*
+		echo Sudoers V3 > $loxberryhome/config/plugins/$pluginname/sudoers.v$sudoversion
+fi
+
+# Change permissions
+if [ -x /usr/bin/logger ]; then 
+	/usr/bin/logger "loxberry-plugin-$pluginname - Setting kill_squeezelite +x permissions"
+fi
+chmod +x $loxberryhome/webfrontend/cgi/plugins/$pluginname/kill_squeezelite.sh
+
+if [ `systemctl is-active squeezelite.service` ]
+	then
+		/usr/bin/logger "loxberry-plugin-$pluginname - Disabling squeezelite.service"
+		systemctl stop squeezelite.service
+		systemctl disable squeezelite.service
+fi
+
+# Use newer squeezelite version if available
+# Currently only for arm and x86 on Linux systems
+# use a fresh logfile
+
+# Config file parsing (based on http://stackoverflow.com/a/20815951/3466839)
+configfile="$loxberryhome/config/plugins/$pluginname/plugin_squeezelite.cfg" # set the actual path name of your (DOS or Unix) config file
+if [ -e $configfile ]; then
+  mkdir /run/shm/$pluginname > /dev/null 2>&1
+  chown loxberry.loxberry /run/shm/$pluginname > /dev/null 2>&1
+  chmod a+w /run/shm/$pluginname > /dev/null 2>&1
+  shopt -s extglob
+  tr -d '\r' < $configfile > /run/shm/$pluginname/tempconfigfile.unix
+  while IFS='= ' read lhs rhs
+  do
+      if [[ ! $lhs =~ ^\ *# && -n $lhs ]]; then
+          rhs="${rhs%%\#*}"    # Del in line right comments
+          rhs="${rhs%%*( )}"   # Del trailing spaces
+          rhs="${rhs%\"*}"     # Del opening string quotes
+          rhs="${rhs#\"*}"     # Del closing string quotes
+          if [[ $lhs =~ ^\[ ]]; then # Set INI-like sections, e.g. [MAIN]
+            lhs="${lhs%\]*}"     # Del opening bracket
+            lhs="${lhs#\[*}"     # Del closing bracket
+            sec=$lhs
+          else
+            if [[ ! $lhs =~ ^\; ]]; then # Don't parse comments startet with ;
+              name="$sec$lhs"
+              declare ${name}="$rhs"
+              #echo "$name = $rhs" # for debugging only
+            fi
+          fi
+      fi
+  done < /run/shm/$pluginname/tempconfigfile.unix
+  rm /run/shm/$pluginname/tempconfigfile.unix > /dev/null 2>&1
+  # Config file parsing end
+fi
+
+if [[ $MainUseAlternativeBinaries == "1" ]]; then
+
+  is_arm() {
+        /bin/uname -a | /bin/grep armv > /dev/null 2>&1
+  }
+  is_x64() {
+        /bin/uname -a | /bin/grep x86_64 > /dev/null 2>&1
+  }
+  is_x86() {
+        /bin/uname -a | /bin/grep x86 > /dev/null 2>&1
+  }
+  rm $loxberryhome/data/plugins/$pluginname/squeezelite
+  if is_arm; then
+	ln -s $loxberryhome/data/plugins/$pluginname/squeezelite-armv6hf $loxberryhome/data/plugins/$pluginname/squeezelite
+	chmod +x $loxberryhome/data/plugins/$pluginname/squeezelite-armv6hf
+  elif is_x64; then
+	ln -s $loxberryhome/data/plugins/$pluginname/squeezelite-x64 $loxberryhome/data/plugins/$pluginname/squeezelite
+	chmod +x $loxberryhome/data/plugins/$pluginname/squeezelite-x64
+  elif is_x86; then
+	ln -s $loxberryhome/data/plugins/$pluginname/squeezelite-x86 $loxberryhome/data/plugins/$pluginname/squeezelite
+	chmod +x $loxberryhome/data/plugins/$pluginname/squeezelite-x86
+  else
+	ln -s /usr/bin/squeezelite $loxberryhome/data/plugins/$pluginname/squeezelite
+	chmod +x /usr/bin/squeezelite
+  fi
+
+else
+        rm $loxberryhome/data/plugins/$pluginname/squeezelite
+	ln -s /usr/bin/squeezelite $loxberryhome/data/plugins/$pluginname/squeezelite
+	chmod +x /usr/bin/squeezelite
+fi
+
+# LoxBerry .0.2.3 Delay start to wait for finished network startup
+sleep 20
+
+
+if [ -s $loxberryhome/config/plugins/$pluginname/plugin_squeezelite.cfg ]
+	then
+	# If a configuration file exists, run Perl script to read config and start Player instances
+	# Run forked to do not delay startup
+	$loxberryhome/webfrontend/cgi/plugins/$pluginname/start_instances.cgi >$loxberryhome/log/plugins/$pluginname/start_instances.log > /dev/null
+fi		
+
+# Starting LMS2UDP
+su loxberry $loxberryhome/webfrontend/cgi/plugins/squeezelite/restart_lms2udp.sh & 1> /dev/null 2> $loxberryhome/log/plugins/$pluginname/start_lms2udp.log
+
+
+
+exit 0
