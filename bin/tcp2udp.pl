@@ -1,6 +1,10 @@
+#!/usr/bin/perl
+
 use IO::Select;
-use IO::Socket;
+#use IO::Socket;
 use IO::Socket::Timeout;
+use IO::Socket::IP;
+
 use LoxBerry::Log;
 
 require "$lbpbindir/libs/config.pm";
@@ -8,19 +12,113 @@ require "$lbpbindir/libs/config.pm";
 # Init Vars
 my $berrytcpport = $config::pcfg{'Main.berrytcpport'};
 
+# Get Miniservers
+my %miniservers;
+%miniservers = LoxBerry::System::get_miniservers();
+if (! %miniservers) {
+    print STDERR "No Miniservers configured. Terminating.";
+    exit(1); # Keine Miniserver vorhanden
+}
+
 ## Listen to a guest TCP connection
 our @tcpin_sock;
+our @tcpout_sock;
+our @udpout_sock;
 our @in_list;
 
+
 foreach my $host (@config::hostkeys) {
-	my $port = $config::pcfg{"$host.lbinport"};
-	print STDERR "Opening TCP-in port for host " . $config::pcfg{$host . '.name'} . ": Port " . $port . "\n";
-	$tcpin_sock[$host] = create_in_socket($tcpin_sock[$host], $port, 'tcp');
-	$in_list[$host] = IO::Select->new ($tcpin_sock[$host]);
+	my $inport = $config::pcfg{"$host.lbinport"};
+	print STDERR "Opening TCP-in port for host " . $config::pcfg{$host . '.name'} . ": Port " . $inport . "\n";
+	
+	# Create In-Port on LoxBerry
+	$tcpin_sock[$host] = create_in_socket($tcpin_sock[$host], $inport, 'tcp');
+	
+	$in_list[$host] = IO::Select->new($tcpin_sock[$host]);
+	
+	# Create Out-Port socket for external device
+	if(!is_enabled($config::pcfg{"$host.hostondemand"})) {
+		my $hostname = $config::pcfg{"$host.hostname"};
+		my $hostport = $config::pcfg{"$host.hostport"};
+		$tcpout_sock[$host] = create_out_socket($tcpout_sock[$host], $hostport, 'tcp', $hostname);
+		$tcpout_sock[$host]->flush;
+	}
+	
+	# Create Out-Port socket for udp answer
+	if ($config::pcfg{"$host.returnms"} and %miniservers{$config::pcfg{"$host.returnms"} }) {
+		my $hostname = $miniservers{$config::pcfg{"$host.returnms"}}{IPAddress};
+		my $hostport = $config::pcfg{"$host.returnport"};
+		$udpout_sock[$host] = create_out_socket($udpout_sock[$host], $hostport, 'udp', $hostname);
+	}
+		
+	
+	
+}
+
+
+my $continue = 1;
+
+while ($continue) {
+
+	# Relay external TCP messages to UDP
+	foreach my $host (@config::hostkeys) {
+		#print STDERR "Relay for $host...\n";
+		relay_tcp2udp($tcpout_sock[$host], $udpout_sock[$host]);
+	}
+
+	# Listen to incoming TCP guests
+	foreach my $host (@config::hostkeys) {
+		#print STDERR "Listen for guests for $host...\n";
+		if (my @in_ready = $in_list[$host]->can_read(0.2)) {
+			foreach my $guest (@in_ready) {
+				if($guest == $tcpin_sock[$host]) {
+					my $new = $tcpin_sock[$host]->accept or die "ERROR: It seems that this port is already occupied - Another instance running?\nQUITTING with error: $! ($@)\n";
+					my $newremote = $new->peerhost();
+					print STDERR "New guest connection accepted from $newremote.\n";
+					$in_list[$host]->add($new);
+				} else {
+					$guest->recv(my $guest_line, 1024);
+					if (index($guest_line, 'connquit') != -1) {
+						print STDERR "Quitting...\n";
+						# print $guest "Quitting.\n";
+						$in_list[$host]->remove($guest);
+						$guest->close;
+					} elsif(index($guest_line, 'daemonquit') != -1) {  print STDERR "Quitting daemon.";
+						$continue = 0;
+					}
+					
+					else {
+						my $udpsock = $udpout_sock[$host];
+						print STDERR $guest_line;
+						print $udpsock $guest_line;
+					}
+				}
+			}
+		}
+	}
 	
 	
 	
 }
+sub relay_tcp2udp
+{
+
+	my ($exttcpsock, $msudpsock) = @_;
+	
+	return if (!$exttcpsock);
+	
+	while (my $inputstring = $exttcpsock->getline) {
+		print STDERR "New string: $inputstring\n";
+		$inputstring = substr $inputstring, 0, 255;
+		print $msudpsock $inputstring;
+	}
+
+
+}
+
+
+
+
 
 
 
@@ -64,17 +162,17 @@ sub create_out_socket
 	} elsif ($proto eq 'udp') {
 		# $params{'LocalAddr'} = 'localhost';
 	}
-	if($socket) {
-		close($socket);
-	}
+	# if($socket) {
+		# close($socket);
+	# }
 		
-	$socket = IO::Socket::INET->new( %params )
-		or die "Couldn't connect to $remotehost:$port : $@\n";
-	sleep (1);
+	$socket = IO::Socket::IP->new( %params )
+		or print STDERR "Couldn't connect to $remotehost:$port : $@\n";
+	sleep (1.5);
 	if ($socket->connected) {
 		print "Created $proto out socket to $remotehost on port $port\n";
 	} else {
-		print "WARNING: Socket to $remotehost on port $port seems to be offline - will retry\n";
+		print STDERR "WARNING: Socket to $remotehost on port $port seems to be offline - will retry\n";
 	}
 	IO::Socket::Timeout->enable_timeouts_on($socket);
 	$socket->read_timeout(2);

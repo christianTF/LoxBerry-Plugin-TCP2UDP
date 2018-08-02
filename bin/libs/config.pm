@@ -17,7 +17,7 @@ my $i;
 foreach my $key (@hostkeys_tmp) {
 		$i++;
 		# print STDERR "Index $i Key $key Value $pcfg{'HOST' . $key . '.name'}\n";
-		if (!$pcfg{'HOST' . $key . '.name'} or !$pcfg{'HOST' . $key . '.hostname'} or !$pcfg{'HOST' . $key . '.hostport'} or !$pcfg{'HOST' . $key . '.returnport'}) {
+		if (!$pcfg{'HOST' . $key . '.name'} or !$pcfg{'HOST' . $key . '.hostname'} or !$pcfg{'HOST' . $key . '.hostport'} or !$pcfg{'HOST' . $key . '.returnport'} or !LoxBerry::System::is_enabled($pcfg{'HOST' . $key . '.activated'})) {
 			# print STDERR "  $key is null\n";
 			
 		} else {
