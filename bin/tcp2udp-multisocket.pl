@@ -24,7 +24,7 @@ if (! %miniservers) {
 our @tcpin_sock;
 our @tcpout_sock;
 our @udpout_sock;
-our @in_list;
+our $in_list = IO::Select->new();
 
 
 foreach my $host (@config::hostkeys) {
@@ -34,7 +34,7 @@ foreach my $host (@config::hostkeys) {
 	# Create In-Port on LoxBerry
 	$tcpin_sock[$host] = create_in_socket($tcpin_sock[$host], $inport, 'tcp');
 	
-	$in_list[$host] = IO::Select->new($tcpin_sock[$host]);
+	$in_list->add($tcpin_sock[$host]);
 	
 	# Create Out-Port socket for external device
 	if(!is_enabled($config::pcfg{"$host.hostondemand"})) {
@@ -67,39 +67,43 @@ while ($continue) {
 	}
 
 	# Listen to incoming TCP guests
-	foreach my $host (@config::hostkeys) {
-		#print STDERR "Listen for guests for $host...\n";
-		if (my @in_ready = $in_list[$host]->can_read(0.2)) {
-			foreach my $guest (@in_ready) {
+	if (my @in_ready = $in_list->can_read(0.2)) {
+		my $newconnection = 0;
+		foreach $guest (@in_ready) {
+			foreach my $host (@config::hostkeys) {
 				if($guest == $tcpin_sock[$host]) {
+					print STDERR "Guest is Socket\n";
+				
 					my $new = $tcpin_sock[$host]->accept or die "ERROR: It seems that this port is already occupied - Another instance running?\nQUITTING with error: $! ($@)\n";
 					my $newremote = $new->peerhost();
 					print STDERR "New guest connection accepted from $newremote.\n";
-					$in_list[$host]->add($new);
+					$in_list->add($new);
+				}
+			}
+			if ($newconnection == 0) {
+				$guest->recv(my $guest_line, 1024);
+				
+				if (index($guest_line, 'connquit') != -1) {
+					print STDERR "Quitting...\n";
+					# print $guest "Quitting.\n";
+					$in_list->remove($guest);
+					$guest->close;
+				} elsif(index($guest_line, 'daemonquit') != -1) {  
+					print STDERR "Quitting daemon.";
+					$continue = 0;
 				} else {
-					$guest->recv(my $guest_line, 1024);
-					if (index($guest_line, 'connquit') != -1) {
-						print STDERR "Quitting...\n";
-						# print $guest "Quitting.\n";
-						$in_list[$host]->remove($guest);
-						$guest->close;
-					} elsif(index($guest_line, 'daemonquit') != -1) {  print STDERR "Quitting daemon.";
-						$continue = 0;
-					}
-					
-					else {
-						my $udpsock = $udpout_sock[$host];
-						print STDERR $guest_line;
-						print $udpsock $guest_line;
-					}
+					my $udpsock = $udpout_sock[$host];
+					print STDERR $guest_line;
+					print $udpsock $guest_line;
 				}
 			}
 		}
 	}
-	
-	
-	
 }
+	
+	
+	
+
 sub relay_tcp2udp
 {
 
