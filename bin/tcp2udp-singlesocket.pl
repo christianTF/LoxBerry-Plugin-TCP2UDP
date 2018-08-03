@@ -9,8 +9,6 @@ use IO::Socket::Timeout;
 use IO::Socket::IP;
 use LoxBerry::Log;
 
-$LoxBerry::Log::DEBUG=1;
-
 # Beim Reconnect kann es zu SIGPIPE kommen, wodurch Perl beendet wird.
 $SIG{PIPE} = sub {
 	LOGDEB "SIGPIPE @_";
@@ -25,10 +23,12 @@ if (!$R::host) {
 	exit(10);
 }
 
-my $host = $R::host;
+my $host = uc($R::host);
+
+# my $lock = LoxBerry::System::lock(lockfile => "tcp2udp_$host", wait => 120);
 
 # Init logfile
-my $log = LoxBerry::Log->new ( name => $host, loglevel => 7, stdout => 1 );
+my $log = LoxBerry::Log->new ( name => $host, stdout => 1, addtime => 1 );
 LOGSTART "TCP2UDP Daemon for host $host";
 
 LOGINF "Reading config file";
@@ -112,7 +112,7 @@ while ($continue) {
 				} else {
 					my $guest_line_chomped = $guest_line;
 					chomp $guest_line_chomped;
-					LOGDEB "Forwarding MS->EXT: " . $guest_line_chomped;
+					LOGDEB "Forward " . $miniservers{$config::pcfg{"$host.returnms"}}{Name} . "->" . $config::pcfg{"$host.name"} . ": " . $guest_line_chomped;
 					if (!$tcpout_sock) {
 						connect_host();
 					}
@@ -154,9 +154,12 @@ sub relay_tcp2udp
 
 	while (my $inputstring = $exttcpsock->getline) {
 		if (is_enabled($config::pcfg{"$host.returnprefix"})) {
-			$inputstring = $miniservers{$config::pcfg{"$host.returnms"}}{Name} . ": " . $inputstring;
+			$inputstring = $config::pcfg{"$host.name"} . ": " . $inputstring;
+			
 		}
-		LOGDEB "Forwarding EXT->MS: $inputstring";
+		my $inputstring_chomped = $inputstring;
+		chomp $inputstring_chomped;
+		LOGDEB "Return  " . $config::pcfg{"$host.name"} . "->" . $miniservers{$config::pcfg{"$host.returnms"}}{Name} . ": $inputstring_chomped";
 		$inputstring = substr $inputstring, 0, 255;
 		print $msudpsock $inputstring;
 	}
@@ -173,8 +176,8 @@ sub connect_host
 	sleep(1);
 	$tcpout_sock = create_out_socket($tcpout_sock, $hostport, 'tcp', $hostname);
 	if($config::pcfg{"$host.hostinitialcommand"}) {
-		LOGINF "Initial LB->EXT: " . $config::pcfg{"$host.hostinitialcommand"};
-		print $tcpout_sock $config::pcfg{"$host.hostinitialcommand"} . "\n";
+		LOGINF "Initial LB->" . $config::pcfg{"$host.name"} . ": " . $config::pcfg{"$host.hostinitialcommand"};
+		print $tcpout_sock $config::pcfg{"$host.hostinitialcommand"} . "\n\r";
 	}
 }
 
@@ -306,3 +309,7 @@ sub create_in_socket
 	# return $response;
 # }
 
+END {
+   LOGEND "Execution stopped";
+   # my $unlockstatus = LoxBerry::System::unlock(lockfile => "tcp2udp_$host");
+}
