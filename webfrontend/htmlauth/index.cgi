@@ -35,7 +35,7 @@ $navbar{1}{Name} = "TCP2UDP Settings";
 $navbar{1}{URL} = 'index.cgi';
 $navbar{1}{Notify_Package} = $lbpplugindir;
  
-$navbar{2}{Name} = "Logfiles";
+$navbar{2}{Name} = "All logfiles";
 $navbar{2}{URL} = LoxBerry::Web::loglist_url();
 $navbar{2}{target} = "_blank";
  

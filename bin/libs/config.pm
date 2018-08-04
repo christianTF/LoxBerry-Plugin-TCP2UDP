@@ -1,5 +1,4 @@
-use Config::Simple;
-use LoxBerry::System;
+use LoxBerry::Web;
 
 package config;
 
@@ -53,6 +52,13 @@ sub generate_form_array
 		my $exthost = $plugincfg->get_block("HOST$host");
 		$$exthost{'host'} = $host;
 		
+		$$exthost{'activated'} = LoxBerry::System::is_enabled($$exthost{'activated'}) ? 'true' : 'false';
+		$$exthost{'returnprefix'} = LoxBerry::System::is_enabled($$exthost{'returnprefix'}) ? 'true' : 'false';
+		$$exthost{'hostondemand'} = LoxBerry::System::is_enabled($$exthost{'hostondemand'}) ? 'true' : 'false';
+		
+		
+		
+		
 		# Generate Miniserver dropdown HTML
 		my $selMiniserver = $main::cgi->popup_menu(
 			  -name    => "HOST${host}returnms",
@@ -61,7 +67,7 @@ sub generate_form_array
 			  -default => $$exthost{'returnms'}
 		  );
 		$$exthost{'miniserverhtml'} = $selMiniserver;
-		
+		$$exthost{'logfilebutton'} = LoxBerry::Web::logfile_button_html( NAME => "HOST$host" );
 		push (@hosts, $exthost);
 	
 	}
