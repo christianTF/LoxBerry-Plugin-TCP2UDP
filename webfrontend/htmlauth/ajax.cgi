@@ -27,6 +27,25 @@ if ($R::action eq "change") {
 	}
 }
 
+if ($R::action eq "delete_block") {
+	my $newkeys = '';
+	foreach my $hostkey (@config::hostkeys_all) {
+		next if ($hostkey eq $R::key);
+		$newkeys = "$newkeys $hostkey" if ($newkeys ne '');
+		$newkeys = "$hostkey" if ($newkeys eq '');
+		
+	}
+	$newkeys =~ s/\ /,\ /g;
+	$config::plugincfg->param("Main.hostkeys", $newkeys);
+	$config::plugincfg->set_block("HOST" . $R::key);
+	$config::plugincfg->save;
+		print $cgi->header(-type => 'application/json;charset=utf-8',
+							-status => "204 No Content");
+		exit;
+}
+
+
+
 if ($R::action eq "query") {
 	print qx { sudo $lbpbindir/elevatedhelper.pl action=query };
 	exit;

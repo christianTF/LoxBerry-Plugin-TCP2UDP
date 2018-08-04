@@ -85,7 +85,7 @@
 		<td colspan="5">
 			<center>
 			<button class="ui-btn ui-btn-inline" id="buttonhost<TMPL_VAR host>-restart">Restart</button>
-			<button class="ui-btn ui-btn-inline" id="buttonhost<TMPL_VAR host>-delete">Delete device</button>
+			<button class="ui-btn ui-btn-inline" id="buttonhost<TMPL_VAR host>-delete" onclick="delete_block('<TMPL_VAR host>'); return false;">Delete device</button>
 			<TMPL_VAR logfilebutton>
 			</center>
 
@@ -114,7 +114,8 @@ $
 
 <script>
 var vars = {};
-
+var url = "ajax.cgi";
+	
 $(document).on('pageinit', function() {
 
 	<!-- query_status(); -->
@@ -141,7 +142,6 @@ function change_value (action, key, value)
 		return;
 	}
 
-	url = "ajax.cgi";
 	var posting = $.post( url, { 	action: action,
 					key: key,
 					value: value,
@@ -159,19 +159,17 @@ function change_value (action, key, value)
 
 }
 
-<!-- function service(key, value) -->
-<!-- { -->
-<!-- $.post( url, { action: "service", key: key, value: value}) -->
-	<!-- .done(function(data){ -->
-		<!-- query_status(); -->
-		<!-- console.log("Response", data); -->
-	<!-- }) -->
-	<!-- .error(function(data){ -->
-		<!-- query_status(); -->
-		<!-- $("#startstopkodi").text("Could not start/stop service"); -->
-	<!-- }); -->
+function delete_block(key)
+{
+$.post( url, { action: "delete_block", key: key})
+	.done(function(data){
+		console.log("Response", data);
+	})
+	.error(function(data){
+		console.log("Error");
+	});
 
-<!-- } -->
+}
 
 
 </script>
