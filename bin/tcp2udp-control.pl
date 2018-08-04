@@ -24,6 +24,10 @@ if ($R::action eq 'service' and $R::value eq 'restart') {
 	LOGINF "Service restart for host $R::key requested";
 	LOGINF "Killing host $R::key";
 	killhost($R::key);
+	if (!is_enabled($config::pcfg{$R::key . '.activated'})) {
+		LOGWARN "Service for host $R::key is disabled. Quitting.";
+		exit(0);
+	}
 	sleep(0.5);
 	LOGINF "Starting host $R::key";
 	starthost($R::key);

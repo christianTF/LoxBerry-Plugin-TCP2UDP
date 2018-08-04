@@ -37,6 +37,7 @@ require "$lbpbindir/libs/config.pm";
 if (! $config::pcfg{$host . '.name'}) {
 	LOGCRIT "Host $host not defined in config file.";
 	LOGEND "Terminating.";
+	exit(1);
 }
 
 LOGINF "Reading Miniservers";
