@@ -1,6 +1,52 @@
 <center>
 <img src="icon_128.png">
 <form>
+
+<TMPL_LOOP NAME="HOSTS">
+<h2>Host <TMPL_VAR host>: <TMPL_VAR name></h2>
+<table>
+	<tr>
+		<td>Gateway</td>
+		<td>Short Name</td>
+		<td>Hostname or IP</td>
+		<td>Port to the device</td>
+		<td>Connect on demand</td>
+	</tr>
+	<tr>
+		<td>
+			<input type="checkbox" id="host<TMPL_VAR host>activated" disabled="disabled">Active
+		</td>
+		<td>
+			<div class="ui-field-contain">     
+			<input type="text" name="host<TMPL_VAR host>name" id="host<TMPL_VAR host>name" data-mini="true" value="" placeholder="Name in logfiles - don't use blancs">
+			</div>
+		</td>
+		<td>
+			<div class="ui-field-contain">     
+			<input type="text" name="host<TMPL_VAR host>hostname" id="host<TMPL_VAR host>hostname" data-mini="true" value="" placeholder="">
+			</div>
+		</td>
+		<td>
+			<div class="ui-field-contain">     
+			<input type="text" name="host<TMPL_VAR host>hostport" id="host<TMPL_VAR host>hostport" data-mini="true" value="" placeholder="">
+			</div>
+		</td>
+		<td>
+			<input type="checkbox" id="host<TMPL_VAR host>hostondemand" disabled="disabled">Active
+		</td>
+	
+	
+	
+	
+	
+	</tr>
+</table>
+</TMPL_LOOP>
+
+
+
+
+
 </form>
 
 </center>

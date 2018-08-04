@@ -6,9 +6,12 @@ use LoxBerry::Log;
 use CGI;
 use warnings;
 use strict;
+require "$lbpbindir/libs/config.pm";
+
+my $version = "0.1.1";
 
 our $cgi = CGI->new;
-my  $version = "0.1.1";
+$cgi->import_names('R');
 
 
 ##########################################################################
@@ -42,6 +45,22 @@ $maintemplate->param( PLUGINNAME => 'TCP2UDP' );
 
 LoxBerry::Web::lbheader("TCP2UDP", "https://www.loxwiki.eu/x/fAA_Ag", "");
 print LoxBerry::Log::get_notifications_html($lbpplugindir);
+
+# List all defined hosts
+config::generate_form_array();
+$maintemplate->param( HOSTS => \@config::hosts );
+
+
+
+
+
+
+
+
+
+
+
+
 print $maintemplate->output;
 LoxBerry::Web::lbfooter();
 

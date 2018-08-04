@@ -29,6 +29,24 @@ foreach my $host (@hostkeys) {
 }
 
 
+sub generate_form_array
+{
+	
+	our @hosts = ();
+	
+	foreach my $host (@hostkeys_all) {
+		# print STDERR "Host $host: Name $pcfg{$host . '.name'}\n";
+		my $exthost = $plugincfg->get_block("HOST$host");
+		$$exthost{'host'} = $host;
+		push (@hosts, $exthost);
+	
+	}
+
+
+
+
+}
+
 
 
 
