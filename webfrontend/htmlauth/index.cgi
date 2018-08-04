@@ -28,19 +28,19 @@ my %L = LoxBerry::System::readlanguage($maintemplate, "language.ini");
 
 # Navigation Bar
 our %navbar;
-$navbar{1}{Name} = "KODI Settings";
+$navbar{1}{Name} = "TCP2UDP Settings";
 $navbar{1}{URL} = 'index.cgi';
 $navbar{1}{Notify_Package} = $lbpplugindir;
  
-$navbar{2}{Name} = "KODI Webinterface";
-$navbar{2}{URL} = "http://" . lbhostname . ":8080";
+$navbar{2}{Name} = "Logfiles";
+$navbar{2}{URL} = LoxBerry::Web::loglist_url();
 $navbar{2}{target} = "_blank";
  
 $navbar{1}{active} = 1;
 
-$maintemplate->param( PLUGINNAME => 'KODI for LoxBerry' );
+$maintemplate->param( PLUGINNAME => 'TCP2UDP' );
 
-LoxBerry::Web::lbheader("KODI for LoxBerry", "http://www.loxwiki.eu:80", "kodi_main.html");
+LoxBerry::Web::lbheader("TCP2UDP", "https://www.loxwiki.eu/x/fAA_Ag", "");
 print LoxBerry::Log::get_notifications_html($lbpplugindir);
 print $maintemplate->output;
 LoxBerry::Web::lbfooter();

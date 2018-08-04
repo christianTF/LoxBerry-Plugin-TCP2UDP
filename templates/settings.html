@@ -1,0 +1,111 @@
+<center>
+<img src="icon_128.png">
+<form>
+</form>
+
+</center>
+
+
+<script>
+var vars = {};
+
+$(document).on('pageinit', function() {
+
+	query_status();
+	
+	$( ":input" ).blur(function(e){change_value("change", e.target.id, $(this).val())});
+	$( "input[type='checkbox']" ).change(function(e){change_value("change", e.target.id, $(this).prop("checked"))});
+
+	$( ":input" ).focusin(function(e){ 
+		vars['old' + $(this).attr("id")] = $(this).val();
+		var respid = $(this).attr("id")+"resp";
+		$("#"+respid).text("");
+		$("#"+respid).css("color", "");
+		
+	});
+
+});
+
+
+function change_value (action, key, value)
+{
+	console.log("Action is", action, "Key is", key, "Value is", value);
+	if (vars['old' + key] === value) {
+		console.log("Nothing changed.");
+		return;
+	}
+
+	url = "ajax.cgi";
+	var posting = $.post( url, { 	action: action,
+					key: key,
+					value: value,
+				 });
+	posting.done(function(data){
+				console.log("Data:", data.key, "Error", data.error);
+				$("#" + data.key + "resp").css("color", "green");
+				$("#" + data.key + "resp").text("Successfully saved");
+			 });
+	posting.error(function(data){
+				console.log("Data:", data.key, "Error", data.error);
+				$("#" + data.key + "resp").css("color", "red");
+				$("#" + data.key + "resp").text("Error writing");
+			 });
+
+}
+
+function query_status()
+{
+	url = "ajax.cgi";
+	$.post( url, { action: "query"})
+	.done(function(data){
+		console.log("Response", data);
+		$("#piserial").text(data.piserial);
+		$("#licmpeg2status").text(data.mpeg2status);
+		$("#licvc1status").text(data.vc1status);
+		
+		if(data.mpeg2status === "enabled")
+			$("#licmpeg2status").css("color", "green");
+		else
+			$("#licmpeg2status").css("color", "red");
+		
+		if(data.vc1status === "enabled")
+			$("#licvc1status").css("color", "green");
+		else
+			$("#licvc1status").css("color", "red");
+		
+		if(data.kodistarted === "1") {
+			$("#kodistarted").css("color", "green");
+			$("#kodistarted").text("Running");
+		} else {
+			$("#kodistarted").css("color", "red");
+			$("#kodistarted").text("Stopped");
+		}
+		
+		$("#licmpeg2").val(data.mpeg2lic);
+		$("#licvc1").val(data.vc1lic);
+		
+		if(data.kodiautostart === "1") 
+			$("#kodiautostart").attr("checked", true).checkboxradio("refresh");
+		$("#kodiautostart").checkboxradio('enable');
+		
+	
+	});
+
+}
+
+function service(key, value)
+{
+$.post( url, { action: "service", key: key, value: value})
+	.done(function(data){
+		query_status();
+		console.log("Response", data);
+	})
+	.error(function(data){
+		query_status();
+		$("#startstopkodi").text("Could not start/stop service");
+	});
+
+}
+
+
+</script>
