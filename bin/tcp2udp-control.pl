@@ -50,8 +50,6 @@ sub killhost
 
 sub killall
 {
-	my ($host) = @_;
-	$host = uc($host);
 	my @output = qx { pkill -f "tcp2udp-singlesocket.pl host=" };
 	print "@output";
 }
