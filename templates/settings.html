@@ -3,7 +3,7 @@
 <form>
 
 <TMPL_LOOP NAME="HOSTS">
-<h2>Device <TMPL_VAR host>: <TMPL_VAR name></h2>
+<h2>Device <TMPL_VAR host>: <span id="host<TMPL_VAR host>-heading"><TMPL_VAR name></span></h2>
 <input type="hidden" id="host<TMPL_VAR host>" value="<TMPL_VAR host>" class="hostnumber">
 
 <table style="border:1px solid lightgrey; padding:10px">
@@ -84,7 +84,7 @@
 	<tr>
 		<td colspan="5">
 			<center>
-			<button class="ui-btn ui-btn-inline" id="buttonhost<TMPL_VAR host>-restart">Restart</button>
+			<button class="ui-btn ui-btn-inline" id="buttonhost<TMPL_VAR host>-restart" onclick="restart_service('<TMPL_VAR host>'); return false;">Restart</button>
 			<button class="ui-btn ui-btn-inline" id="buttonhost<TMPL_VAR host>-delete" onclick="delete_block('<TMPL_VAR host>'); return false;">Delete device</button>
 			<TMPL_VAR logfilebutton>
 			</center>
@@ -100,12 +100,17 @@ $
 	$("#host<TMPL_VAR host>-returnprefix").attr("checked",<TMPL_VAR returnprefix>).checkboxradio('enable').checkboxradio("refresh");
 	$("#host<TMPL_VAR host>-hostondemand").attr("checked",<TMPL_VAR hostondemand>).checkboxradio('enable').checkboxradio("refresh");
 	
+	$("#host<TMPL_VAR host>-name").blur(function(){ $('#host<TMPL_VAR host>-heading').text($("#host<TMPL_VAR host>-name").val());});
+	
 });
 
 
 </script>
 
 </TMPL_LOOP>
+
+<button class="ui-btn ui-btn-inline" id="buttonadd" onclick="add_block(); return false;">Add device</button>
+			
 
 </form>
 
@@ -164,12 +169,41 @@ function delete_block(key)
 $.post( url, { action: "delete_block", key: key})
 	.done(function(data){
 		console.log("Response", data);
+		location.reload();
 	})
 	.error(function(data){
 		console.log("Error");
+		location.reload();
 	});
-
 }
+
+function add_block()
+{
+$.post( url, { action: "add_block" })
+	.done(function(data){
+		console.log("Response", data);
+		location.reload();
+	})
+	.error(function(data){
+		console.log("Error");
+		location.reload();
+	});
+}
+
+function restart_service(key)
+{
+$.post( url, { action: "service", key: key, value: 'restart' })
+	.done(function(data){
+		console.log("Response", data);
+		location.reload();
+	})
+	.error(function(data){
+		console.log("Error");
+		location.reload();
+	});
+}
+
+
 
 
 </script>

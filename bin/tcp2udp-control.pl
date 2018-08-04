@@ -20,6 +20,17 @@ require "$lbpbindir/libs/config.pm";
 	# LOGEND "Terminating.";
 # }
 
+if ($R::action eq 'service' and $R::value eq 'restart') {
+	LOGINF "Service restart for host $R::key requested";
+	LOGINF "Killing host $R::key";
+	killhost($R::key);
+	sleep(0.5);
+	LOGINF "Starting host $R::key";
+	starthost($R::key);
+	exit(0);
+}
+
+
 killall();
 startall();
 

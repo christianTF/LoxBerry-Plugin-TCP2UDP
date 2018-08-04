@@ -9,11 +9,17 @@ print STDERR "Configfile version $pcfg{'Main.ConfigVersion'}\n";
 
 # Evaluate keys of configured hosts
 our @hostkeys_all = $plugincfg->param('Main.hostkeys');
+if (!$hostkeys_all[0]) {
+	undef @hostkeys_all;
+}
+
+
 our $hostkeys;
 #print STDERR "Hostkeys: " . @hostkeys . "\n";
 
 my $i;
 foreach my $key (@hostkeys_all) {
+		print STDERR "Hostkey '$key'\n";
 		$i++;
 		# print STDERR "Index $i Key $key Value $pcfg{'HOST' . $key . '.name'}\n";
 		if (!$pcfg{'HOST' . $key . '.name'} or !$pcfg{'HOST' . $key . '.hostname'} or !$pcfg{'HOST' . $key . '.hostport'} or !$pcfg{'HOST' . $key . '.returnport'} or !LoxBerry::System::is_enabled($pcfg{'HOST' . $key . '.activated'})) {

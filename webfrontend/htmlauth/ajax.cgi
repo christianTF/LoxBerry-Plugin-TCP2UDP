@@ -44,6 +44,30 @@ if ($R::action eq "delete_block") {
 		exit;
 }
 
+if ($R::action eq "add_block") {
+	my $newkeys = '';
+	@config::hostkeys_all = sort @config::hostkeys_all;
+	# foreach my $hostkey (@config::hostkeys_all) {
+		# print STDERR "Sort Hostkey $hostkey\n";
+	# }
+	
+	my $newnumber = $config::hostkeys_all[-1] + 1;
+	push(@config::hostkeys_all, $newnumber);
+	print STDERR "Newnumber: $newnumber\n";
+	foreach my $hostkey (@config::hostkeys_all) {
+		$newkeys = "$newkeys $hostkey" if ($newkeys ne '');
+		$newkeys = "$hostkey" if ($newkeys eq '');
+		
+	}
+	$newkeys =~ s/\ /,\ /g;
+	$config::plugincfg->param("Main.hostkeys", $newkeys);
+	$config::plugincfg->set_block("HOST" . $newnumber, { returnms => 1 });
+	$config::plugincfg->save;
+		print $cgi->header(-type => 'application/json;charset=utf-8',
+							-status => "204 No Content");
+		exit;
+}
+
 
 
 if ($R::action eq "query") {
@@ -52,7 +76,9 @@ if ($R::action eq "query") {
 }
 
 if ($R::action eq "service") {
-	print qx { sudo $lbpbindir/elevatedhelper.pl action=service key=$R::key value=$R::value};
+	print qx { sudo $lbpbindir/tcp2udp-control.pl action=service key=HOST{$R::key} value=$R::value};
+	print $cgi->header(-type => 'application/json;charset=utf-8',
+							-status => "204 No Content");
 	exit;
 }
 
