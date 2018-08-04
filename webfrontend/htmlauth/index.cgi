@@ -51,16 +51,6 @@ config::generate_form_array();
 $maintemplate->param( HOSTS => \@config::hosts );
 
 
-
-
-
-
-
-
-
-
-
-
 print $maintemplate->output;
 LoxBerry::Web::lbfooter();
 

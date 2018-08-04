@@ -32,12 +32,36 @@ foreach my $host (@hostkeys) {
 sub generate_form_array
 {
 	
+	# Build Miniserver list
+	my %miniservers = LoxBerry::System::get_miniservers();
+	my @miniserverarray;
+	my %miniserverhash;
+	my $i = 1;
+
+	foreach my $ms (sort keys %miniservers)
+	{
+		push @miniserverarray, $ms;
+		$miniserverhash{"$ms"} = $miniservers{$ms}{Name};
+		$i++;
+	}
+	
+	# Build array for HTML::Template
 	our @hosts = ();
 	
 	foreach my $host (@hostkeys_all) {
 		# print STDERR "Host $host: Name $pcfg{$host . '.name'}\n";
 		my $exthost = $plugincfg->get_block("HOST$host");
 		$$exthost{'host'} = $host;
+		
+		# Generate Miniserver dropdown HTML
+		my $selMiniserver = $main::cgi->popup_menu(
+			  -name    => "HOST${host}returnms",
+			  -values  => \@miniserverarray,
+			  -labels  => \%miniserverhash,
+			  -default => $$exthost{'returnms'}
+		  );
+		$$exthost{'miniserverhtml'} = $selMiniserver;
+		
 		push (@hosts, $exthost);
 	
 	}

@@ -4,17 +4,19 @@
 
 <TMPL_LOOP NAME="HOSTS">
 <h2>Host <TMPL_VAR host>: <TMPL_VAR name></h2>
-<table>
+<table style="border:1px solid lightgrey; padding:10px">
 	<tr>
-		<td>Gateway</td>
-		<td>Short Name</td>
-		<td>Hostname or IP</td>
-		<td>Port to the device</td>
-		<td>Connect on demand</td>
+		<th>Gateway</th>
+		<th>Short Name</th>
+		<th>Hostname or IP</th>
+		<th>Port to the device</th>
+		<th>Connect on demand</th>
 	</tr>
 	<tr>
 		<td>
+			<label>
 			<input type="checkbox" id="host<TMPL_VAR host>activated" disabled="disabled">Active
+			</label>
 		</td>
 		<td>
 			<div class="ui-field-contain">     
@@ -32,9 +34,50 @@
 			</div>
 		</td>
 		<td>
-			<input type="checkbox" id="host<TMPL_VAR host>hostondemand" disabled="disabled">Active
+			<label>
+			<input type="checkbox" id="host<TMPL_VAR host>hostondemand" disabled="disabled">On demand
+			</label>
+		</td>
+	</tr>
+	<tr>
+		<th>Plugin In-Port for this device</th>
+		<th colspan="2">Miniserver to answer</th>
+		<th>UDP port for MS</th>
+		<th>Prefix answer with device name</th>
+	</tr>
+	<tr>
+		<td>
+			<div class="ui-field-contain">     
+			<input type="text" name="host<TMPL_VAR host>lbinport" id="host<TMPL_VAR host>lbinport" data-mini="true" value="" placeholder="">
+			</div>
+		</td>
+		<td colspan="2"><TMPL_VAR miniserverhtml>
+		</td>
+		<td>
+			<div class="ui-field-contain">     
+			<input type="text" name="host<TMPL_VAR host>returnport" id="host<TMPL_VAR host>returnport" data-mini="true" value="" placeholder="">
+			</div>
+		</td>
+		<td>
+			<label>
+			<input type="checkbox" id="host<TMPL_VAR host>returnprefix" disabled="disabled">Answers prefixed
+			</label>
 		</td>
 	
+	
+	</tr>
+	<tr>
+		<th colspan="5">On connect, initialize external device with this command</th>
+	</tr>
+	<tr>
+		<td colspan="5">
+			<div class="ui-field-contain">     
+			<input type="text" name="host<TMPL_VAR host>hostinitialcommand" id="host<TMPL_VAR host>hostinitialcommand" data-mini="true" value="" placeholder="Leave this empty if unsure">
+			</div>
+		
+		</td>
+	</tr>
+		
 	
 	
 	
