@@ -17,29 +17,29 @@
 	<tr>
 		<td>
 			<label>
-			<input type="checkbox" id="host<TMPL_VAR host>activated" disabled="disabled">Active
-			<input type="hidden" id="host<TMPL_VAR host>activated_str" value="<TMPL_VAR activated>">
+			<input type="checkbox" id="host<TMPL_VAR host>-activated" disabled="disabled">Active
+			<input type="hidden" id="host<TMPL_VAR host>-activated_str" value="<TMPL_VAR activated>">
 			</label>
 		</td>
 		<td>
 			<div class="ui-field-contain">     
-			<input type="text" name="host<TMPL_VAR host>name" id="host<TMPL_VAR host>name" data-mini="true" value="<TMPL_VAR name>" placeholder="Name in logfiles - don't use blancs">
+			<input type="text" name="host<TMPL_VAR host>-name" id="host<TMPL_VAR host>-name" data-mini="true" value="<TMPL_VAR name>" placeholder="Name in logfiles - don't use blancs">
 			</div>
 		</td>
 		<td>
 			<div class="ui-field-contain">     
-			<input type="text" name="host<TMPL_VAR host>hostname" id="host<TMPL_VAR host>hostname" data-mini="true" value="<TMPL_VAR hostname>" placeholder="">
+			<input type="text" name="host<TMPL_VAR host>-hostname" id="host<TMPL_VAR host>-hostname" data-mini="true" value="<TMPL_VAR hostname>" placeholder="">
 			</div>
 		</td>
 		<td>
 			<div class="ui-field-contain">     
-			<input type="text" name="host<TMPL_VAR host>hostport" id="host<TMPL_VAR host>hostport" data-mini="true" value="<TMPL_VAR hostport>" placeholder="">
+			<input type="text" name="host<TMPL_VAR host>-hostport" id="host<TMPL_VAR host>-hostport" data-mini="true" value="<TMPL_VAR hostport>" placeholder="">
 			</div>
 		</td>
 		<td>
 			<label>
-			<input type="checkbox" id="host<TMPL_VAR host>hostondemand" disabled="disabled">On demand
-			<input type="hidden" id="host<TMPL_VAR host>hostondemand_str" value="<TMPL_VAR hostondemand>">
+			<input type="checkbox" id="host<TMPL_VAR host>-hostondemand" disabled="disabled">On demand
+			<input type="hidden" id="host<TMPL_VAR host>-hostondemand_str" value="<TMPL_VAR hostondemand>">
 			</label>
 		</td>
 	</tr>
@@ -52,20 +52,20 @@
 	<tr>
 		<td>
 			<div class="ui-field-contain">     
-			<input type="text" name="host<TMPL_VAR host>lbinport" id="host<TMPL_VAR host>lbinport" data-mini="true" value="<TMPL_VAR lbinport>" placeholder="">
+			<input type="text" name="host<TMPL_VAR host>-lbinport" id="host<TMPL_VAR host>-lbinport" data-mini="true" value="<TMPL_VAR lbinport>" placeholder="">
 			</div>
 		</td>
 		<td colspan="2"><TMPL_VAR miniserverhtml>
 		</td>
 		<td>
 			<div class="ui-field-contain">     
-			<input type="text" name="host<TMPL_VAR host>returnport" id="host<TMPL_VAR host>returnport" data-mini="true" value="<TMPL_VAR returnport>" placeholder="">
+			<input type="text" name="host<TMPL_VAR host>-returnport" id="host<TMPL_VAR host>-returnport" data-mini="true" value="<TMPL_VAR returnport>" placeholder="">
 			</div>
 		</td>
 		<td>
 			<label>
-			<input type="checkbox" id="host<TMPL_VAR host>returnprefix" disabled="disabled">Answers prefixed
-			<input type="hidden" id="host<TMPL_VAR host>returnprefix_str" value="<TMPL_VAR returnprefix>">		
+			<input type="checkbox" id="host<TMPL_VAR host>-returnprefix" disabled="disabled">Answers prefixed
+			<input type="hidden" id="host<TMPL_VAR host>-returnprefix_str" value="<TMPL_VAR returnprefix>">		
 			</label>
 		</td>
 	
@@ -77,15 +77,15 @@
 	<tr>
 		<td colspan="5">
 			<div class="ui-field-contain">     
-			<input type="text" name="host<TMPL_VAR host>hostinitialcommand" id="host<TMPL_VAR host>hostinitialcommand" data-mini="true" value="<TMPL_VAR hostinitialcommand>" placeholder="Leave this empty if unsure">
+			<input type="text" name="host<TMPL_VAR host>-hostinitialcommand" id="host<TMPL_VAR host>-hostinitialcommand" data-mini="true" value="<TMPL_VAR hostinitialcommand>" placeholder="Leave this empty if unsure">
 			</div>
 		</td>
 	</tr>
 	<tr>
 		<td colspan="5">
 			<center>
-			<button class="ui-btn ui-btn-inline" id="buttonhost<TMPL_VAR host>restart">Restart</button>
-			<button class="ui-btn ui-btn-inline" id="buttonhost<TMPL_VAR host>delete">Delete device</button>
+			<button class="ui-btn ui-btn-inline" id="buttonhost<TMPL_VAR host>-restart">Restart</button>
+			<button class="ui-btn ui-btn-inline" id="buttonhost<TMPL_VAR host>-delete">Delete device</button>
 			<TMPL_VAR logfilebutton>
 			</center>
 
@@ -96,15 +96,10 @@
 <script>
 $
 (function() {
-	$("#host<TMPL_VAR host>activated").attr("checked",<TMPL_VAR activated>).checkboxradio('enable').checkboxradio("refresh");
-	$("#host<TMPL_VAR host>returnprefix").attr("checked",<TMPL_VAR returnprefix>).checkboxradio('enable').checkboxradio("refresh");
-	$("#host<TMPL_VAR host>hostondemand").attr("checked",<TMPL_VAR hostondemand>).checkboxradio('enable').checkboxradio("refresh");
+	$("#host<TMPL_VAR host>-activated").attr("checked",<TMPL_VAR activated>).checkboxradio('enable').checkboxradio("refresh");
+	$("#host<TMPL_VAR host>-returnprefix").attr("checked",<TMPL_VAR returnprefix>).checkboxradio('enable').checkboxradio("refresh");
+	$("#host<TMPL_VAR host>-hostondemand").attr("checked",<TMPL_VAR hostondemand>).checkboxradio('enable').checkboxradio("refresh");
 	
-
-
-
-
-
 });
 
 
@@ -130,8 +125,8 @@ $(document).on('pageinit', function() {
 	$( ":input" ).focusin(function(e){ 
 		vars['old' + $(this).attr("id")] = $(this).val();
 		var respid = $(this).attr("id")+"resp";
-		$("#"+respid).text("");
-		$("#"+respid).css("color", "");
+		// $("#"+respid).text("");
+		// $("#"+respid).css("color", "");
 		
 	});
 
@@ -152,14 +147,14 @@ function change_value (action, key, value)
 					value: value,
 				 });
 	posting.done(function(data){
-				console.log("Data:", data.key, "Error", data.error);
-				$("#" + data.key + "resp").css("color", "green");
-				$("#" + data.key + "resp").text("Successfully saved");
+				console.log("OK");
+				// $("#" + data.key + "resp").css("color", "green");
+				//$("#" + data.key + "resp").text("Successfully saved");
 			 });
 	posting.error(function(data){
-				console.log("Data:", data.key, "Error", data.error);
-				$("#" + data.key + "resp").css("color", "red");
-				$("#" + data.key + "resp").text("Error writing");
+				console.log("Error");
+				//$("#" + data.key + "resp").css("color", "red");
+				//$("#" + data.key + "resp").text("Error writing");
 			 });
 
 }

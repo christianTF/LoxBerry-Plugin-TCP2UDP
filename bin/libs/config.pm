@@ -2,7 +2,7 @@ use LoxBerry::Web;
 
 package config;
 
-my $plugincfg = new Config::Simple("$LoxBerry::System::lbpconfigdir/tcp2udp.cfg");
+our $plugincfg = new Config::Simple("$LoxBerry::System::lbpconfigdir/tcp2udp.cfg");
 our %pcfg = $plugincfg->vars();
 
 print STDERR "Configfile version $pcfg{'Main.ConfigVersion'}\n";
@@ -61,7 +61,8 @@ sub generate_form_array
 		
 		# Generate Miniserver dropdown HTML
 		my $selMiniserver = $main::cgi->popup_menu(
-			  -name    => "HOST${host}returnms",
+			  -name    => "host${host}-returnms",
+			  -id    => "host${host}-returnms",
 			  -values  => \@miniserverarray,
 			  -labels  => \%miniserverhash,
 			  -default => $$exthost{'returnms'}

@@ -4,6 +4,8 @@ use LoxBerry::System;
 use CGI;
 use warnings;
 use strict;
+require "$lbpbindir/libs/config.pm";
+
 
 our $cgi = CGI->new;
 $cgi->import_names('R');
@@ -11,11 +13,18 @@ my  $version = "0.1.1";
 
 if ($R::action eq "change") {
 	my $success;
-	if ($R::key eq "licvc1" || $R::key eq "licmpeg2" || $R::key eq "kodiautostart") {
-		print qx { sudo $lbpbindir/elevatedhelper.pl action=change key=$R::key value=$R::value };
+	my ($host, $key) = split('-', $R::key);
+	if (substr(uc($host),  0, 4) eq 'HOST') {
+		$host = uc(substr($host,  4));
+		
+		$config::plugincfg->param("HOST$host.$key", $R::value) if ($R::value);
+		$config::plugincfg->delete("HOST$host.$key") if (!$R::value);
+		$config::plugincfg->save();
+		
+		print $cgi->header(-type => 'application/json;charset=utf-8',
+							-status => "204 No Content");
+		exit;
 	}
-	exit;
-
 }
 
 if ($R::action eq "query") {
