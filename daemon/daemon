@@ -1,5 +1,4 @@
 #!/bin/bash
-exit 0
 # Will be executed as user "root".
 
 # Name this file "daemon" in your plugin-archive. It will be renamed to NAME
