@@ -76,7 +76,7 @@ if ($R::action eq "query") {
 }
 
 if ($R::action eq "service") {
-	print qx { sudo $lbpbindir/tcp2udp-control.pl action=service key=HOST{$R::key} value=$R::value};
+	print qx { sudo $lbpbindir/tcp2udp-control.pl action=service key=HOST$R::key value=$R::value};
 	print $cgi->header(-type => 'application/json;charset=utf-8',
 							-status => "204 No Content");
 	exit;
