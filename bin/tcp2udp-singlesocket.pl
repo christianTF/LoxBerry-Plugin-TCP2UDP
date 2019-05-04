@@ -40,6 +40,14 @@ if (! $config::pcfg{$host . '.name'}) {
 	exit(1);
 }
 
+if (! $config::pcfg{$host . '.lineterminator'}) {
+	LOGWARN "Line terminator is set to DEFAULT \\r";
+	$config::pcfg{$host . '.lineterminator'} = "\r";
+} else {
+	LOGINF "Line terminator is set to " . $config::pcfg{$host . '.lineterminator'};
+	$config::pcfg{$host . '.lineterminator'} =~ s/\\([rnt'"\\])/"qq|\\$1|"/gee;
+}
+
 LOGINF "Reading Miniservers";
 my %miniservers;
 %miniservers = LoxBerry::System::get_miniservers();
@@ -133,7 +141,7 @@ while ($continue) {
 	# Keep-alive handling
 	if($next_keepalive and $next_keepalive < time) {
 		LOGDEB "Sending keep-alive";
-		send_to_device($config::pcfg{"$host.hostkeepalivecommand"} . "\r\n");
+		send_to_device($config::pcfg{"$host.hostkeepalivecommand"} . $config::pcfg{$host . '.lineterminator'});
 		$next_keepalive = time + $config::pcfg{"$host.hostkeepalivetime"};
 	}
 }
@@ -198,7 +206,7 @@ sub connect_host
 	$tcpout_sock = create_out_socket($tcpout_sock, $hostport, 'tcp', $hostname);
 	if($config::pcfg{"$host.hostinitialcommand"}) {
 		LOGINF "Initial LB->" . $config::pcfg{"$host.name"} . ": " . $config::pcfg{"$host.hostinitialcommand"};
-		print $tcpout_sock $config::pcfg{"$host.hostinitialcommand"} . "\r\n";
+		print $tcpout_sock $config::pcfg{"$host.hostinitialcommand"} . $config::pcfg{$host . '.lineterminator'};
 	}
 }
 

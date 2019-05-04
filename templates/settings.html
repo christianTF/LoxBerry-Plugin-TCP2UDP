@@ -72,12 +72,19 @@
 	
 	</tr>
 	<tr>
-		<th colspan="3">On connect, initialize external device with this command</th>
+		<th>Command terminator (e.g. \r or \n)</th>
+		<th colspan="2">Connection init command</th>
 		<th>Keep-alive command</th>
 		<th>Send keep-alive every x secs<th>
 	</tr>
 	<tr>
-		<td colspan="3">
+		<td colspan="1">
+			<div class="ui-field-contain">     
+			<input type="text" name="host<TMPL_VAR host>-lineterminator" id="host<TMPL_VAR host>-lineterminator" data-mini="true" value="<TMPL_VAR lineterminator>" placeholder="Usually \r or \r\n">
+			</div>
+		</td>
+		
+		<td colspan="2">
 			<div class="ui-field-contain">     
 			<input type="text" name="host<TMPL_VAR host>-hostinitialcommand" id="host<TMPL_VAR host>-hostinitialcommand" data-mini="true" value="<TMPL_VAR hostinitialcommand>" placeholder="Leave this empty if unsure">
 			</div>
