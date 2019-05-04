@@ -71,7 +71,7 @@ if(!is_enabled($config::pcfg{"$host.hostondemand"})) {
 }
 
 # Create Out-Port socket for udp answer
-if ($config::pcfg{"$host.returnms"} and %miniservers{$config::pcfg{"$host.returnms"} }) {
+if ($config::pcfg{"$host.returnms"} and $miniservers{$config::pcfg{"$host.returnms"} }) {
 	my $hostname = $miniservers{$config::pcfg{"$host.returnms"}}{IPAddress};
 	my $hostport = $config::pcfg{"$host.returnport"};
 	LOGINF "Opening UDP socket to Miniserver $hostname:$hostport";
@@ -79,7 +79,16 @@ if ($config::pcfg{"$host.returnms"} and %miniservers{$config::pcfg{"$host.return
 	$udpout_sock = create_out_socket($udpout_sock, $hostport, 'udp', $hostname);
 	print $udpout_sock "Hello " . $miniservers{$config::pcfg{"$host.returnms"}}{Name} . "! TCP2UDP Plugin is calling from LoxBerry " . lbfriendlyname();
 }
-		
+
+# Init keep-alive
+my $next_keepalive;
+if(defined $config::pcfg{"$host.hostkeepalivetime"} and defined $config::pcfg{"$host.hostkeepalivecommand"} and $config::pcfg{"$host.hostkeepalivetime"} > 0) {
+	LOGINF "Using keep-alive every " . $config::pcfg{"$host.hostkeepalivetime"} . " seconds";
+	$next_keepalive = time + $config::pcfg{"$host.hostkeepalivetime"};
+} else {
+	LOGINF "No keep-alive enabled";
+}
+
 my $continue = 1;
 
 while ($continue) {
@@ -114,29 +123,40 @@ while ($continue) {
 					my $guest_line_chomped = $guest_line;
 					chomp $guest_line_chomped;
 					LOGDEB "Forward " . $miniservers{$config::pcfg{"$host.returnms"}}{Name} . "->" . $config::pcfg{"$host.name"} . ": " . $guest_line_chomped;
-					if (!$tcpout_sock) {
-						connect_host();
-					}
-					my $res = print $tcpout_sock $guest_line;
-					# $tcpout_sock->send($guest_line);
-					if (!$res) {
-						LOGWARN "Remote device seems to be disconnected - Reconnecting...";
-						connect_host();
-						LOGINF "   Retry sending";
-						$res = print $tcpout_sock $guest_line if ($tcpout_sock);
-						if (!$res) {
-							 LOGWARN "Re-send failed.";
-						}
+					send_to_device($guest_line_chomped);
 				}
-							
-					
-				}
+				
 			}
 		}
 	}
+	
+	# Keep-alive handling
+	if($next_keepalive and $next_keepalive < time) {
+		LOGDEB "Sending keep-alive";
+		send_to_device($config::pcfg{"$host.hostkeepalivecommand"} . "\r\n");
+		$next_keepalive = time + $config::pcfg{"$host.hostkeepalivetime"};
+	}
 }
 	
+sub send_to_device
+{
+	my ($data) = @_;
 	
+	if (!$tcpout_sock) {
+		connect_host();
+	}
+	my $res = print $tcpout_sock $data;
+	# $tcpout_sock->send($data);
+	if (!$res) {
+		LOGWARN "Remote device seems to be disconnected - Reconnecting...";
+		connect_host();
+		LOGINF "   Retry sending";
+		$res = print $tcpout_sock $data if ($tcpout_sock);
+		if (!$res) {
+			 LOGWARN "Re-send failed.";
+		}
+	}
+}
 	
 
 sub relay_tcp2udp
@@ -178,7 +198,7 @@ sub connect_host
 	$tcpout_sock = create_out_socket($tcpout_sock, $hostport, 'tcp', $hostname);
 	if($config::pcfg{"$host.hostinitialcommand"}) {
 		LOGINF "Initial LB->" . $config::pcfg{"$host.name"} . ": " . $config::pcfg{"$host.hostinitialcommand"};
-		print $tcpout_sock $config::pcfg{"$host.hostinitialcommand"} . "\n\r";
+		print $tcpout_sock $config::pcfg{"$host.hostinitialcommand"} . "\r\n";
 	}
 }
 
