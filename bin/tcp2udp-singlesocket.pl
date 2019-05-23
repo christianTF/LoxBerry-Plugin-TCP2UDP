@@ -85,7 +85,8 @@ if ($config::pcfg{"$host.returnms"} and $miniservers{$config::pcfg{"$host.return
 	LOGINF "Opening UDP socket to Miniserver $hostname:$hostport";
 	LOGINF "Check the UDP Monitor in Loxone Config for a welcome message!";
 	$udpout_sock = create_out_socket($udpout_sock, $hostport, 'udp', $hostname);
-	print $udpout_sock "Hello " . $miniservers{$config::pcfg{"$host.returnms"}}{Name} . "! TCP2UDP Plugin is calling from LoxBerry " . lbfriendlyname();
+	#print $udpout_sock "Hello " . $miniservers{$config::pcfg{"$host.returnms"}}{Name} . "! TCP2UDP Plugin is calling from LoxBerry " . lbfriendlyname();
+	$udpout_sock->send("Hello " . $miniservers{$config::pcfg{"$host.returnms"}}{Name} . "! TCP2UDP Plugin is calling from LoxBerry " . lbfriendlyname()) or LOGWARN "Could not send welcome message to Miniserver";
 }
 
 # Init keep-alive
@@ -190,7 +191,8 @@ sub relay_tcp2udp
 		chomp $inputstring_chomped;
 		LOGDEB "Return  " . $config::pcfg{"$host.name"} . "->" . $miniservers{$config::pcfg{"$host.returnms"}}{Name} . ": $inputstring_chomped";
 		$inputstring = substr $inputstring, 0, 255;
-		print $msudpsock $inputstring;
+		#print $msudpsock $inputstring;
+		$msudpsock->send($inputstring) or LOGWARN "Could not send udp data to Miniserver";
 	}
 }
 
